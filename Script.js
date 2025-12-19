@@ -21,12 +21,23 @@ window.addEventListener('scroll', () => {
     });
 });
 
-// Mobile menu toggle
+
+// Enhanced Mobile menu functionality
 const navToggler = document.getElementById('navToggler');
 const sidebar = document.getElementById('sidebar');
+const mainContent = document.querySelector('.main-content');
 
+// Enhanced mobile menu toggle with better UX
 navToggler.addEventListener('click', () => {
     sidebar.classList.toggle('open');
+    navToggler.classList.toggle('active');
+    
+    // Prevent body scroll when menu is open
+    if (sidebar.classList.contains('open')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
 });
 
 // Close sidebar when clicking on a link (mobile)
@@ -34,8 +45,69 @@ navLinks.forEach(link => {
     link.addEventListener('click', () => {
         if (window.innerWidth <= 991) {
             sidebar.classList.remove('open');
+            navToggler.classList.remove('active');
+            document.body.style.overflow = '';
         }
     });
+});
+
+// Close sidebar when clicking outside (mobile)
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 991 && 
+        sidebar.classList.contains('open') && 
+        !sidebar.contains(e.target) && 
+        !navToggler.contains(e.target)) {
+        sidebar.classList.remove('open');
+        navToggler.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+
+// Enhanced touch gestures for mobile
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+});
+
+document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+    
+    // Only process horizontal swipes if they're more significant than vertical
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+        if (diffX > 0 && sidebar.classList.contains('open')) {
+            // Swipe left to close menu
+            sidebar.classList.remove('open');
+            navToggler.classList.remove('active');
+            document.body.style.overflow = '';
+        } else if (diffX < 0 && !sidebar.classList.contains('open') && touchStartX < 50) {
+            // Swipe right from left edge to open menu
+            sidebar.classList.add('open');
+            navToggler.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 991) {
+        sidebar.classList.remove('open');
+        navToggler.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 });
 
 // Style switcher toggle
@@ -172,29 +244,6 @@ const progressObserver = new IntersectionObserver((entries) => {
 progressBars.forEach(bar => {
     progressObserver.observe(bar);
 });
-
-//function qui empêche le clic droit
-document.addEventListener('contextmenu', event => event.preventDefault());
-document.onkeydown = function(e) {
-if (e.keyCode == 123) return false; // F12
-if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; // Ctrl+Shift+I
-if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Ctrl+U
-};
-
-// Empêcher le clic droit
-document.addEventListener("contextmenu", (e) => {
-e.preventDefault();
-showAlert();
-});
-
-// Empêcher le raccourci pour Inspecter
-document.onkeydown = function (e) {
-if (e.keyCode === 123) return showAlert(); // F12
-if (e.ctrlKey && e.shiftKey && e.keyCode === 'I'.charCodeAt(0)) return showAlert(); // Ctrl+Shift+I
-if (e.ctrlKey && e.shiftKey && e.keyCode === 'J'.charCodeAt(0)) return showAlert(); // Ctrl+Shift+J
-if (e.ctrlKey && e.keyCode === 'U'.charCodeAt(0)) return showAlert(); // Ctrl+U
-if (e.ctrlKey && e.keyCode === 'S'.charCodeAt(0)) return showAlert(); // Ctrl+S
-};
 
 // Alerte visuelle simple
 function showAlert() {
